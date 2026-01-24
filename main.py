@@ -94,7 +94,6 @@ def parsing_insert_data():
                     time.sleep(10)
                     print('запрос binance.com выполнен', datetime.now()) 
 
-
                 if name == 'kraken.com':    
                     raw_response = func_parisng(correct_url)
                     db_data = convertor_kraken(raw_response)
@@ -132,8 +131,22 @@ def get_all_prices():
     return lst
         
 
-
-
+@app.get('/api/v1/arbitrage/{symbol}')
+def find_arbitrage_opportunities(symbol: str):
+    lst = []
+    site = ['binance.com', 'kraken.com', 'bybit.com'] 
+    with engine.connect() as conn:
+        for name_site in site:
+            result = conn.execute(text(f""" 
+                SELECT site, currency, price, date_price
+                FROM price
+                WHERE currency = '{symbol}' AND site = '{name_site}'
+                ORDER BY date_price desc
+                LIMIT 1
+            """))
+            data_dict = result.mappings().all()
+            lst.append(data_dict) 
+    return lst
 
 
 
@@ -142,4 +155,4 @@ def get_all_prices():
 if __name__ == "__main__":
     t = Thread(target = parsing_insert_data) # Дал задаче t мою функцию
     t.start() # Запустил задачу с моей функции в первом потоке    
-    uvicorn.run(app, host="127.0.0.1", port=8000)      
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)      
