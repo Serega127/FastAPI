@@ -145,7 +145,12 @@ def find_arbitrage_opportunities(symbol: str):
                 LIMIT 1
             """))
             data_dict = result.mappings().all()
-            lst.append(data_dict) 
+            for i in data_dict:
+                temp_dict = {
+                "site": i['site'],
+                "price": i["price"]
+                }
+                lst.append(temp_dict) 
     return lst
 
 
